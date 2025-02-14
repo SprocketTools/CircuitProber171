@@ -1,7 +1,9 @@
 import random
 import pandas as pd
+from playsound3 import playsound
 import webbrowser
-import sys, time, pyvisa #install zeroconf, pyvisa, and pyvisa-py
+import sys, time, pyvisa, pyvisa_py
+#install zeroconf, pyvisa, and pyvisa-py
 from asyncio import wait_for
 
 from PyQt6 import QtWidgets, uic, QtCore
@@ -10,23 +12,36 @@ from PyQt6.QtCore import QTimer, Qt
 import CircuitProberUI
 class Dialog(QtWidgets.QDialog):
     def __init__(self):
+        self.active = False
         self.volt_limit = 0
         self.delay = 0
         self.increment = 0
+        self.data = []
         self.radio_setting = "nothing"
         super().__init__()
         self.ui = CircuitProberUI.Ui_Dialog()
         self.ui.setupUi(self)
+
+        self.ui.run_button.clicked.disconnect()
         self.ui.run_button.clicked.connect(self.on_run_button_clicked)
-        self.ui.sweep_radio.toggled.connect(lambda: self.update_radio_setting(valIn="sweep"))
-        self.ui.nothing_radio.toggled.connect(lambda: self.update_radio_setting(valIn="nothing"))
+        self.ui.copy_button.clicked.connect(self.copy_data)
+        self.ui.voltage_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage Sweep"))
+        self.ui.nothing_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Panel Test"))
+        self.ui.current_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current Sweep"))
         self.probe = pyvisa.ResourceManager()
-        self.send_log(f"Resources available: {self.probe.list_resources()}")
-        for resource in self.probe.list_resources():
-            if "DP" in resource:
-                self.ui.channel_0.setText(resource)
-            if "DM" in resource:
-                self.ui.channel_1.setText(resource)
+        self.send_log('''Welcome to CircuitProber!''')
+        self.send_log('UI Developed by Colson Pusley')
+        self.send_log('''Adapted from Nikolas Kastor's projects and Michael's work at Core Electronics, Kotara, AU.  Licensed under CC BY-NC-SA 4.0 - http://creativecommons.org/licenses/by-nc-sa/4.0/''')
+        self.send_log('')
+        try:
+            self.send_log(f"Resources available: {self.probe.list_resources()}")
+            for resource in self.probe.list_resources():
+                if "DP" in resource:
+                    self.ui.channel_0.setText(resource)
+                if "DM" in resource:
+                    self.ui.channel_1.setText(resource)
+        except Exception:
+            self.send_log("Failed to detect any devices connected.")
 
     def update_radio_setting(self, valIn):
         self.radio_setting = valIn
@@ -34,29 +49,41 @@ class Dialog(QtWidgets.QDialog):
     def send_log(self, valIn):
         self.ui.console_out.insertPlainText(valIn)
         self.ui.console_out.insertPlainText("\n")
+        scrollbar = self.ui.console_out.verticalScrollBar()
+        scrollbar.rangeChanged.connect(lambda min, max: scrollbar.setValue(max))
 
     def on_run_button_clicked(self):
+        if random.random() < 0.002:
+            playsound('Clip.mp3')
         print("Hi")
         self.volt_limit = self.ui.volt_limit.value()
         self.delay = self.ui.curr_limit.value()
         self.increment = self.ui.increment_setting.value()
         self.send_log(f"Mode: {self.radio_setting}")
 
-        if self.radio_setting == "sweep":
-            self.run_sweep()
-        if self.radio_setting == "nothing":
+        if self.radio_setting == "Voltage Sweep":
+            self.run_sweep('voltage')
+        elif self.radio_setting == "Current Sweep":
+            self.run_sweep('current')
+        elif self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
-            headers_test = ["test", "one", "two"]
+            headers_test = ["applied volts", "recorded voltage"]
             self.update_table(headers_test, data_test)
 
-    def run_sweep(self):
-        data_test = [[1, 2, 3], [4, 5, 6], ["test", 5]]
-        data_headers = ["one", "two", "three"]
+
+    def run_sweep(self, setting: str):
+        data_headers = ["applied volts", "recorded " + setting]
         data_collected = []
+        rawSetting = ""
+        if setting == "voltage":
+            rawSetting = "VOLTage"
+        elif setting == "current":
+            rawSetting = "CURRent"
+        else:
+            self.send_log("Terminating due to internal error")
+            return
         #print(str(self.ui.channel_0.text()))
         try:
-            self.send_log("Intended address: USB0::0x1AB1::0x0E11::DP8C182001548::INSTR")
-            self.send_log("Connected address: " + self.ui.channel_0.toPlainText())
             supply = self.probe.open_resource(self.ui.channel_0.toPlainText())  # Put your device IDs here
         except Exception:
             self.send_log(" Failed to connect PSU")
@@ -88,7 +115,7 @@ class Dialog(QtWidgets.QDialog):
             supply.write(':APPL CH1,' + str(v) + ',0.2')  # Set the voltage
             time.sleep(2)
             # measure the voltage
-            DMMoutput = dmm.query(':MEASure:VOLTage:DC?')  # record the output of the dmm
+            DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?')  # record the output of the dmm
             vMeasured = float(DMMoutput)  # exctract the numerical values and store as float
             data_collected.append([DMMoutput, vMeasured])
             v += self.volt_limit / self.increment
@@ -115,7 +142,13 @@ class Dialog(QtWidgets.QDialog):
                 i+=1
         df = pd.DataFrame(data_in)
         df.to_clipboard()
+        self.data = data_in
         self.send_log("Table updated and pasted to clipboard.")
+
+    def copy_data(self):
+        df = pd.DataFrame(self.data)
+        df.to_clipboard()
+        self.send_log("Table pasted to clipboard.")
 
 
 
