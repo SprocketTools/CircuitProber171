@@ -11,8 +11,10 @@ rm = pyvisa.ResourceManager()
 # List all connected resources
 print("Resources detected\n{}\n".format(rm.list_resources()))
 
-supply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C182001474::INSTR') # Put your device IDs here
-dmm = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R184850533::INSTR')
+#('USB0::0x1AB1::0x09C4::DM3R183001617::INSTR', 'USB0::0x1AB1::0x0E11::DP8C182001548::INSTR')
+
+supply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C182001548::INSTR') # Put your device IDs here
+dmm = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R183001617::INSTR') #USB0::0x1AB1::0x0E11::DP8C182001548::INSTR
 
 # Setup Digital MultiMeter in DC Voltage mode
 dmm.write(':FUNCtion:VOLTage:DC')
@@ -30,7 +32,7 @@ while v <= 10.0: # sweep voltage up to 10V
 
     # measure the voltage
     DMMoutput = dmm.query(':MEASure:VOLTage:DC?') #record the output of the dmm
-    vMeasured = float(DMMoutput[12:26])  #exctract the numerical values and store as float
+    vMeasured = float(DMMoutput)  #exctract the numerical values and store as float
 
     # Write results to console
     print("{}  {}".format(v, vMeasured))
