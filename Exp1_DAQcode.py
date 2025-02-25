@@ -22,9 +22,19 @@ dmm.write(':FUNCtion:VOLTage:DC')
 # Setup the power supply 0V, 200mA
 supply.write(':OUTP CH1,OFF')   # start OFF - safe :)
 supply.write(':APPL CH1,0,0.2') # apply 0V, 0.2A
-
+supply.write(':OUTP CH2,OFF')   # start OFF - safe :)
+supply.write(':APPL CH2,0,0.2') # apply 0V, 0.2A
+supply.write(':OUTP CH3,OFF')   # start OFF - safe :)
+supply.write(':APPL CH3,0,0.2') # apply 0V, 0.2A
 # Run the test
 supply.write(':OUTP CH1,ON')
+supply.write(':OUTP CH2,ON')
+supply.write(':OUTP CH3,ON')
+
+# apply voltages to the static channels
+supply.write(':APPL CH1,' + str(v1) + ',0.2')
+supply.write(':APPL CH2,' + str(v2) + ',0.2')
+
 v = 0
 while v <= 10.0: # sweep voltage up to 10V
     supply.write(':APPL CH1,' + str(v) + ',0.2')            # Set the voltage

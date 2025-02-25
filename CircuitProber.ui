@@ -22,27 +22,34 @@
    <string>CircuitProber</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(225, 225, 225);
+   <string notr="true">
 font: 10pt &quot;Tahoma&quot;</string>
   </property>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>20</x>
      <y>20</y>
-     <width>491</width>
-     <height>114</height>
+     <width>481</width>
+     <height>66</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Power Supply Address</string>
       </property>
      </widget>
     </item>
-    <item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Multimeter Address</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
      <widget class="QTextEdit" name="channel_0">
       <property name="maximumSize">
        <size>
@@ -52,14 +59,7 @@ font: 10pt &quot;Tahoma&quot;</string>
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Multimeter Address</string>
-      </property>
-     </widget>
-    </item>
-    <item>
+    <item row="3" column="1">
      <widget class="QTextEdit" name="channel_1">
       <property name="maximumSize">
        <size>
@@ -100,16 +100,16 @@ font: 10pt &quot;Tahoma&quot;</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>160</y>
+     <y>106</y>
      <width>201</width>
-     <height>321</height>
+     <height>441</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QLabel" name="label_5">
       <property name="text">
-       <string>Final voltage (Ch. 1)</string>
+       <string>Final PSU voltage (Sweep - Ch. 1)</string>
       </property>
      </widget>
     </item>
@@ -126,12 +126,29 @@ font: 10pt &quot;Tahoma&quot;</string>
     <item>
      <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Final voltage (Ch. 2)</string>
+       <string>Target PSU voltage (Static - Ch. 2)</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QDoubleSpinBox" name="volt_limit_2">
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="value">
+       <double>12.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Target PSU voltage (Static - Ch. 3)</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="volt_limit_3">
       <property name="decimals">
        <number>3</number>
       </property>
@@ -160,7 +177,7 @@ font: 10pt &quot;Tahoma&quot;</string>
     <item>
      <widget class="QLabel" name="label_7">
       <property name="text">
-       <string>Amount of data points</string>
+       <string>Amount of data points (sweeps)</string>
       </property>
      </widget>
     </item>
@@ -182,7 +199,7 @@ font: 10pt &quot;Tahoma&quot;</string>
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>125</height>
+        <height>175</height>
        </size>
       </property>
       <property name="baseSize">
@@ -194,33 +211,7 @@ font: 10pt &quot;Tahoma&quot;</string>
       <property name="title">
        <string>Mode</string>
       </property>
-      <widget class="QRadioButton" name="voltage_radio">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>191</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Ch. 1 Voltage Sweep</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="nothing_radio">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>100</y>
-         <width>151</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Panel Test</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="current_radio">
+      <widget class="QRadioButton" name="voltage_sweep_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -230,23 +221,23 @@ font: 10pt &quot;Tahoma&quot;</string>
         </rect>
        </property>
        <property name="text">
-        <string>Ch. 2 Current Sweep</string>
+        <string>Voltage Sweep</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="two_source_v_probe_radio">
+      <widget class="QRadioButton" name="nothing_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>60</y>
-         <width>191</width>
+         <y>150</y>
+         <width>151</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Two-Source Voltage Probe</string>
+        <string>Panel Test</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="two_source_c_probe_radio">
+      <widget class="QRadioButton" name="current_sweep_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -256,7 +247,59 @@ font: 10pt &quot;Tahoma&quot;</string>
         </rect>
        </property>
        <property name="text">
-        <string>Two-Source Current Probe</string>
+        <string>Current Sweep</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="voltage_probe_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>20</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Voltage Probe</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="current_probe_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>60</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Current Probe</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="resistance_sweep_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>120</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Resistance Sweep</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="resistance_probe_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>100</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Resistance Probe</string>
        </property>
       </widget>
      </widget>
@@ -267,18 +310,18 @@ font: 10pt &quot;Tahoma&quot;</string>
    <property name="geometry">
     <rect>
      <x>250</x>
-     <y>160</y>
+     <y>110</y>
      <width>251</width>
-     <height>421</height>
+     <height>471</height>
     </rect>
    </property>
   </widget>
   <widget class="QPushButton" name="run_button">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>500</y>
-     <width>101</width>
+     <x>20</x>
+     <y>560</y>
+     <width>91</width>
      <height>24</height>
     </rect>
    </property>
@@ -294,9 +337,9 @@ background-color: rgb(255, 240, 240);</string>
   <widget class="QPushButton" name="copy_button">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>530</y>
-     <width>101</width>
+     <x>130</x>
+     <y>560</y>
+     <width>91</width>
      <height>24</height>
     </rect>
    </property>
