@@ -1,4 +1,4 @@
-import os, random, pygame
+import os, random, pygame.midi, mido
 import pandas as pd
 from playsound3 import playsound
 import webbrowser
@@ -13,7 +13,7 @@ import CircuitProberUI
 class Dialog(QtWidgets.QDialog):
     def __init__(self):
         try:
-            pygame.init()
+            pygame.midi.init()
             if getattr(sys, 'frozen', False):
                 # If the app is running as a bundle (frozen executable)
                 bundle_dir = sys._MEIPASS
@@ -21,11 +21,13 @@ class Dialog(QtWidgets.QDialog):
             else:
                 # If running from source code (not bundled)
                 audio_file = 'assets/background.mid'
-            self.mid = pygame.mixer.music.load(audio_file)
+            self.player = pygame.midi.Output(pygame.midi.get_default_output_id())
+            self.mid = mido.MidiFile(audio_file)
         except FileNotFoundError:
             print(f"Error: MIDI file not found at 'background.mid'")
             return
         self.active = False
+        self.music_pos = 0
         self.volt_limit = 0
         self.delay = 0
         self.increment = 0
@@ -95,13 +97,17 @@ class Dialog(QtWidgets.QDialog):
         elif self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
             headers_test = ["applied volts", "recorded voltage"]
+            i = 0
+            while i < 20:
+                self.play_next_note()
+                i+=1
 
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                # check if playback has finished
-                print("hi")
-                clock = pygame.time.Clock()
-                clock.tick(30)
+            # pygame.mixer.music.play()
+            # while pygame.mixer.music.get_busy():
+            #     # check if playback has finished
+            #     print("hi")
+            #     clock = pygame.time.Clock()
+            #     clock.tick(30)
 
 
 
@@ -177,6 +183,20 @@ class Dialog(QtWidgets.QDialog):
         supply.write(':OUTP CH3,OFF')  # start OFF - safe :)
         supply.write(':APPL CH3,0,0.2')  # apply 0V, 0.2A
         self.update_table(data_headers, data_collected)
+
+    def play_next_note(self):
+        i = 0
+        for msg in self.mid:  # Play the messages from the midi file
+            if msg.type == 'note_on':  # Look for "note_on" messages to play notes
+                if i == self.music_pos:
+                # Play the note (msg.note is the note number, msg.velocity is how loud)
+                    self.player.note_on(msg.note, msg.velocity)
+                    time.sleep(msg.time)  # Sleep for the duration of the note
+                    self.player.note_off(msg.note, msg.velocity)
+                    self.music_pos+=1
+                    return
+                i+=1
+
 
     def update_table(self, headers_in, data_in):
         self.ui.tableWidget.clear()
