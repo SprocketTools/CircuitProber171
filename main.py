@@ -26,6 +26,8 @@ class Dialog(QtWidgets.QDialog):
         self.ui.run_button.clicked.connect(self.on_run_button_clicked)
         self.ui.copy_button.clicked.connect(self.copy_data)
         self.ui.voltage_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage Sweep"))
+        self.ui.two_source_v_probe_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage Probe on Two Channels"))
+        self.ui.two_source_c_probe_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current Probe on Two Channels"))
         self.ui.nothing_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Panel Test"))
         self.ui.current_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current Sweep"))
         self.probe = pyvisa.ResourceManager()
@@ -57,6 +59,7 @@ class Dialog(QtWidgets.QDialog):
             playsound('Clip.mp3')
         print("Hi")
         self.volt_limit = self.ui.volt_limit.value()
+        self.volt_limit_2 = self.ui.volt_limit_2.value()
         self.delay = self.ui.curr_limit.value()
         self.increment = self.ui.increment_setting.value()
         self.send_log(f"Mode: {self.radio_setting}")
@@ -65,11 +68,86 @@ class Dialog(QtWidgets.QDialog):
             self.run_sweep('voltage')
         elif self.radio_setting == "Current Sweep":
             self.run_sweep('current')
+        elif self.radio_setting == "Voltage Probe on Two Channels":
+            self.run_probe('voltage')
+        elif self.radio_setting == "Current Probe on Two Channels":
+            self.run_probe('current')
         elif self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
             headers_test = ["applied volts", "recorded voltage"]
             self.update_table(headers_test, data_test)
 
+    def run_probe(self, setting: str):
+        rm = pyvisa.ResourceManager()
+        # List all connected resources
+        print("Resources detected\n{}\n".format(rm.list_resources()))
+        data_headers = ["applied volts", "recorded " + setting]
+        data_collected = []
+        rawSetting = ""
+        if setting == "voltage":
+            rawSetting = "VOLTage"
+        elif setting == "current":
+            rawSetting = "CURRent"
+        else:
+            self.send_log("Terminating due to internal error")
+            return
+        #print(str(self.ui.channel_0.text()))
+        # Put your device IDs here
+        try:
+            supply = self.probe.open_resource(self.ui.channel_0.toPlainText())  # Put your device IDs here
+        except Exception:
+            self.send_log(" Failed to connect PSU")
+            return
+
+        try:
+            dmm = self.probe.open_resource(self.ui.channel_1.toPlainText())
+        except Exception:
+            self.send_log("Failed to connect DMM")
+            return
+
+        # Setup Digital MultiMeter in DC Voltage measurement mode
+        dmm.write(f':FUNCtion:{rawSetting}:DC')
+
+        # Setup the power supply 0V, 200mA
+        supply.write(':OUTP CH1,OFF')  # start OFF - safe :)
+        supply.write(':OUTP CH2,OFF')  # start OFF - safe :)
+        supply.write(':APPL CH1,0,0.2')  # apply 0V, 0.2A
+        supply.write(':APPL CH2,0,0.2')  # apply 0V, 0.2A
+
+        # Turn on the supply
+        supply.write(':OUTP CH1,ON')
+        supply.write(':OUTP CH2,ON')
+
+        # Set the supply voltage
+        v1 = self.volt_limit
+        v2 = self.volt_limit_2
+        supply.write(':APPL CH1,' + str(v1) + ',0.2')
+        supply.write(':APPL CH2,' + str(v2) + ',0.2')
+        time.sleep(1)  # Wait for a short period
+
+        # measure the voltage
+        DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?')  # record the output of the dmm
+        measuredValue = float(DMMoutput)  # exctract the numerical values and store as float
+
+        # Query the voltage, current and power measured on the output terminal of the specified channel of the Supply.
+        supplyV1 = supply.query(':MEAS:ALL? CH1')
+        supplyV2 = supply.query(':MEAS:ALL? CH2')
+
+        # Wait for a short period
+        time.sleep(2)
+
+        # Write results to console
+        data_collected.append(["CH1 (V,A,W)", supplyV1])
+        data_collected.append(["CH2 (V,A,W)", supplyV2])
+        data_collected.append(['Measured_Value:', measuredValue])
+
+
+        # Test complete. Turn supply off and zero the setpoints
+        supply.write(':OUTP CH1,OFF')
+        supply.write(':APPL CH1,0,0')
+        supply.write(':OUTP CH2,OFF')
+        supply.write(':APPL CH2,0,0')
+        self.update_table(data_headers, data_collected)
 
     def run_sweep(self, setting: str):
         data_headers = ["applied volts", "recorded " + setting]
