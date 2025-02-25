@@ -140,7 +140,7 @@ class Dialog(QtWidgets.QDialog):
 
         # Setup Digital MultiMeter in DC Voltage mode
         try:
-            dmm.write(':FUNCtion:VOLTage:DC')
+            dmm.write(f':FUNCtion:{rawSetting}:DC')
         except Exception:
             self.send_log("Failed to write to DMM")
 
@@ -161,16 +161,16 @@ class Dialog(QtWidgets.QDialog):
 
         # Run the test
         supply.write(':OUTP CH1,ON')
-        v = self.volt_limit / self.increment
+        v = round(self.volt_limit / self.increment, 4)
         while v <= self.volt_limit + 0.0001:  # sweep voltage up to 10V
             self.send_log(f"Testing at {v} volts on CH1")
             supply.write(':APPL CH1,' + str(v) + ',0.2')  # Set the voltage
             time.sleep(self.delay)
             # measure the voltage
-            DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?')  # record the output of the dmm
+            DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?')  # record the output of the dmm - OMIT :DC for resistance.
             vMeasured = float(DMMoutput)  # exctract the numerical values and store as float
             data_collected.append([DMMoutput, vMeasured])
-            v += self.volt_limit / self.increment
+            v += round(self.volt_limit / self.increment, 4)
         # Test complete. Turn supply off and zero the setpoints
         supply.write(':OUTP CH1,OFF')  # start OFF - safe :)
         supply.write(':APPL CH1,0,0.2')  # apply 0V, 0.2A

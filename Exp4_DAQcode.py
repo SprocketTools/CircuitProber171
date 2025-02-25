@@ -40,8 +40,16 @@ rm = pyvisa.ResourceManager()
 print("Resources detected\n{}\n".format(rm.list_resources()))
 
 # Put your device IDs here
-supply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C182001474::INSTR') 
-dmm = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R184850533::INSTR')
+
+
+for resource in rm.list_resources():
+    if "DP" in resource:
+        supply = rm.open_resource(resource)
+    if "DM" in resource:
+        dmm = rm.open_resource(resource)
+
+# supply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C182001474::INSTR')
+# dmm = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R184850533::INSTR')
 
 # Setup the power supply 0V, 200mA
 supply.write(':OUTP CH1,OFF')   # start OFF - safe :)
