@@ -19,10 +19,10 @@ class Ui_Dialog(object):
         font.setBold(False)
         font.setItalic(False)
         Dialog.setFont(font)
-        Dialog.setStyleSheet("background-color: rgb(225, 225, 225);\n"
+        Dialog.setStyleSheet("\n"
 "font: 10pt \"Tahoma\"")
         self.verticalLayoutWidget = QtWidgets.QWidget(parent=Dialog)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(20, 20, 481, 61))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(20, 20, 481, 66))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.verticalLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)

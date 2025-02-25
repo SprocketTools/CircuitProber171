@@ -1,4 +1,4 @@
-import random
+import os, random, pygame
 import pandas as pd
 from playsound3 import playsound
 import webbrowser
@@ -12,6 +12,19 @@ from PyQt6.QtCore import QTimer, Qt
 import CircuitProberUI
 class Dialog(QtWidgets.QDialog):
     def __init__(self):
+        try:
+            pygame.init()
+            if getattr(sys, 'frozen', False):
+                # If the app is running as a bundle (frozen executable)
+                bundle_dir = sys._MEIPASS
+                audio_file = os.path.join(bundle_dir, 'assets/background.mid')
+            else:
+                # If running from source code (not bundled)
+                audio_file = 'assets/background.mid'
+            self.mid = pygame.mixer.music.load(audio_file)
+        except FileNotFoundError:
+            print(f"Error: MIDI file not found at 'background.mid'")
+            return
         self.active = False
         self.volt_limit = 0
         self.delay = 0
@@ -82,6 +95,16 @@ class Dialog(QtWidgets.QDialog):
         elif self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
             headers_test = ["applied volts", "recorded voltage"]
+
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                # check if playback has finished
+                print("hi")
+                clock = pygame.time.Clock()
+                clock.tick(30)
+
+
+
             self.update_table(headers_test, data_test)
 
     def run_test(self, setting: str, type: str):
