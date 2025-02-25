@@ -1,4 +1,4 @@
-import os, random, pygame
+import os, random, pygame, datetime
 import pandas as pd
 from playsound3 import playsound
 import webbrowser
@@ -70,8 +70,19 @@ class Dialog(QtWidgets.QDialog):
         scrollbar.rangeChanged.connect(lambda min, max: scrollbar.setValue(max))
 
     def on_run_button_clicked(self):
-        if random.random() < 0.002:
-            playsound('Clip.mp3')
+        d = datetime.datetime.now()
+        odds = 1
+        if d.month == 10 and d.day > 25:
+            odds = 30
+        if d.month == 4 and d.day < 8:
+            odds = 50
+        if random.random() < 0.002*odds:
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                # check if playback has finished
+                print("hi")
+                clock = pygame.time.Clock()
+                clock.tick(30)
         print("Hi")
         self.volt_limit = self.ui.volt_limit.value()
         self.volt_limit_2 = self.ui.volt_limit_2.value()
@@ -85,7 +96,7 @@ class Dialog(QtWidgets.QDialog):
         elif self.radio_setting == "Current Sweep":
             self.run_test('current', 'sweep')
         elif self.radio_setting == "Resistance Sweep":
-            self.run_test('resitance', 'sweep')
+            self.run_test('resistance', 'sweep')
         elif self.radio_setting == "Voltage Probe":
             self.run_test('voltage', 'probe')
         elif self.radio_setting == "Current Probe":
@@ -95,17 +106,8 @@ class Dialog(QtWidgets.QDialog):
         elif self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
             headers_test = ["applied volts", "recorded voltage"]
-
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                # check if playback has finished
-                print("hi")
-                clock = pygame.time.Clock()
-                clock.tick(30)
-
-
-
             self.update_table(headers_test, data_test)
+
 
     def run_test(self, setting: str, type: str):
         data_headers = ["applied volts", "recorded " + setting]
@@ -160,8 +162,8 @@ class Dialog(QtWidgets.QDialog):
         # Run the test
         supply.write(':OUTP CH1,ON')
         v = self.volt_limit / self.increment
-        while v <= self.volt_limit + 0.001:  # sweep voltage up to 10V
-            self.send_log(f"Testing for {v} volts.")
+        while v <= self.volt_limit + 0.0001:  # sweep voltage up to 10V
+            self.send_log(f"Testing at {v} volts on CH1")
             supply.write(':APPL CH1,' + str(v) + ',0.2')  # Set the voltage
             time.sleep(self.delay)
             # measure the voltage
@@ -195,7 +197,6 @@ class Dialog(QtWidgets.QDialog):
                 i+=1
         df = pd.DataFrame(data_in)
         df.to_clipboard()
-        time.sleep(self.delay)
         self.data = data_in
         self.send_log("Table updated and pasted to clipboard.")
 
