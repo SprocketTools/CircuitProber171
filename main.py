@@ -25,26 +25,30 @@ class Dialog(QtWidgets.QDialog):
         except FileNotFoundError:
             print(f"Error: MIDI file not found at 'background.mid'")
             return
+        self.channel_setting = ""
         self.active = False
         self.volt_limit = 0
         self.delay = 0
+        self.psuStatus = False
         self.increment = 0
         self.data = []
         self.radio_setting = "nothing"
         super().__init__()
         self.ui = CircuitProberUI.Ui_Dialog()
         self.ui.setupUi(self)
-
         self.ui.run_button.clicked.disconnect()
         self.ui.run_button.clicked.connect(self.on_run_button_clicked)
         self.ui.copy_button.clicked.connect(self.copy_data)
-        self.ui.voltage_sweep_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage Sweep"))
-        self.ui.voltage_probe_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage Probe"))
-        self.ui.current_sweep_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current Sweep"))
-        self.ui.current_probe_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current Probe"))
-        self.ui.resistance_sweep_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Resistance Sweep"))
-        self.ui.resistance_probe_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Resistance Probe"))
-        self.ui.nothing_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Panel Test"))
+
+        # Make connections between everything
+        self.ui.voltage_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Voltage"))
+        self.ui.current_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Current"))
+        self.ui.resistance_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Resistance"))
+        self.ui.channel_0_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Channel 0"))
+        self.ui.channel_1_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Channel 1"))
+        self.ui.channel_2_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Channel 2"))
+        self.ui.channel_3_radio.toggled.connect(lambda: self.update_radio_setting(valIn="Channel 3"))
+
         self.probe = pyvisa.ResourceManager()
         self.send_log('''Welcome to CircuitProber!''')
         self.send_log('UI Developed by Colson Pusley')
@@ -61,7 +65,13 @@ class Dialog(QtWidgets.QDialog):
             self.send_log("Failed to detect any devices connected.")
 
     def update_radio_setting(self, valIn):
-        self.radio_setting = valIn
+        if "Channel" in valIn:
+            self.channel_setting = valIn
+            self.send_log(f"Updated channel to {valIn}")
+        else:
+            self.radio_setting = valIn
+            self.send_log(f"Updated mode to {valIn}")
+        self.send_log(f'Record PSU data: {self.ui.psuRecord.isChecked()}')
 
     def send_log(self, valIn):
         self.ui.console_out.insertPlainText(valIn)
@@ -70,6 +80,8 @@ class Dialog(QtWidgets.QDialog):
         scrollbar.rangeChanged.connect(lambda min, max: scrollbar.setValue(max))
 
     def on_run_button_clicked(self):
+
+        #choose if music is played or not
         d = datetime.datetime.now()
         odds = 1
         if d.month == 10 and d.day > 25:
@@ -84,6 +96,9 @@ class Dialog(QtWidgets.QDialog):
                 clock = pygame.time.Clock()
                 clock.tick(30)
         print("Hi")
+
+        #recheck variables
+        self.psuStatus = self.ui.psuRecord.isChecked()
         self.volt_limit = self.ui.volt_limit.value()
         self.volt_limit_2 = self.ui.volt_limit_2.value()
         self.volt_limit_3 = self.ui.volt_limit_3.value()
@@ -91,39 +106,32 @@ class Dialog(QtWidgets.QDialog):
         self.increment = self.ui.increment_setting.value()
         self.send_log(f"Mode: {self.radio_setting}")
 
-        if self.radio_setting == "Voltage Sweep":
-            self.run_test('voltage', 'sweep')
-        elif self.radio_setting == "Current Sweep":
-            self.run_test('current', 'sweep')
-        elif self.radio_setting == "Resistance Sweep":
-            self.run_test('resistance', 'sweep')
-        elif self.radio_setting == "Voltage Probe":
-            self.run_test('voltage', 'probe')
-        elif self.radio_setting == "Current Probe":
-            self.run_test('current', 'probe')
-        elif self.radio_setting == "Resistance Probe":
-            self.run_test('resistance', 'probe')
-        elif self.radio_setting == "Panel Test":
+        if self.radio_setting == "Panel Test":
             data_test = [[1, 2, round(random.random(), 2)], [4, 5, 6], ["test", 5]]
             headers_test = ["applied volts", "recorded voltage"]
             self.update_table(headers_test, data_test)
+        else:
+            self.run_test()
 
 
-    def run_test(self, setting: str, type: str):
-        data_headers = ["applied volts", "recorded " + setting]
-        data_collected = []
+    def run_test(self): #, setting: str, type: str
+        setting = self.radio_setting
         rawSetting = ""
-        if setting == "voltage":
+        rawChannel = ""
+        if setting == "Voltage":
             rawSetting = "VOLTage"
-        elif setting == "current":
+        elif setting == "Current":
             rawSetting = "CURRent"
-        elif setting == "resistance":
+        elif setting == "Resistance":
             rawSetting = "RESistance"
         else:
             self.send_log("Terminating due to internal error")
             return
-        if type == 'probe':
+        if self.channel_setting == 'Channel 0':
             self.increment = 1
+        else:
+            rawSetting = "CH" + str(self.channel_setting).split(" ")[1]
+            print(rawSetting)
 
         #print(str(self.ui.channel_0.text()))
         try:
@@ -155,22 +163,39 @@ class Dialog(QtWidgets.QDialog):
         except Exception:
             self.send_log("Failed to write to DMM")
 
-        # Set the supply voltage to power the op-amp using CH2 and CH3
-        supply.write(':APPL CH2,' + str(self.volt_limit_2) + ',0.2')
-        supply.write(':APPL CH3,' + str(self.volt_limit_3) + ',0.2')
-
-        # Run the test
+        # turn on the channels
         supply.write(':OUTP CH1,ON')
-        v = round(self.volt_limit / self.increment, 4)
+        supply.write(':OUTP CH2,ON')
+        supply.write(':OUTP CH3,ON')
+
+        # Set the supply voltage to power the static channels
+        if self.channel_setting != "Channel 1":
+            supply.write(':APPL CH1,' + str(self.volt_limit) + ',0.2')
+        if self.channel_setting != "Channel 2":
+            supply.write(':APPL CH2,' + str(self.volt_limit_2) + ',0.2')
+        if self.channel_setting != "Channel 3":
+            supply.write(':APPL CH3,' + str(self.volt_limit_3) + ',0.2')
+
+        # Run the sweep test.  This will run regardless of whether the software is set to probe, and simply just sets the value again in this case.
+        v = round(self.volt_limit / self.increment, 4) # set the starting increment
         while v <= self.volt_limit + 0.0001:  # sweep voltage up to 10V
-            self.send_log(f"Testing at {v} volts on CH1")
-            supply.write(':APPL CH1,' + str(v) + ',0.2')  # Set the voltage
-            time.sleep(self.delay)
-            # measure the voltage
-            DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?')  # record the output of the dmm - OMIT :DC for resistance.
+            self.send_log(f"Testing at {v} volts on {rawChannel}") # debugging logs
+            supply.write(f':APPL {rawChannel},' + str(v) + ',0.2')  # Set the voltage
+            time.sleep(self.delay) #let the data stabilize
+            if rawSetting == 'RESistance':
+                DMMoutput = dmm.query(f':MEASure:{rawSetting}?')  # record the output of the dmm - OMIT :DC for resistance.
+            else:
+                DMMoutput = dmm.query(f':MEASure:{rawSetting}:DC?') # measure the voltage or current
             vMeasured = float(DMMoutput)  # exctract the numerical values and store as float
-            data_collected.append([DMMoutput, vMeasured])
-            v += round(self.volt_limit / self.increment, 4)
+            
+            #if set to record PSU data, include it here
+            if self.psuStatus:
+                supplyData = supply.query(':MEAS:ALL? CH1')
+                data_collected.append([DMMoutput, vMeasured, (" {}{}".format('CH1 (V,A,W): ', supplyData))])
+            else:
+                data_collected.append([DMMoutput, vMeasured]) #add the data to the table
+            v += round(self.volt_limit / self.increment, 4) # increment the data and continue
+
         # Test complete. Turn supply off and zero the setpoints
         supply.write(':OUTP CH1,OFF')  # start OFF - safe :)
         supply.write(':APPL CH1,0,0.2')  # apply 0V, 0.2A
@@ -178,6 +203,8 @@ class Dialog(QtWidgets.QDialog):
         supply.write(':APPL CH2,0,0.2')  # apply 0V, 0.2A
         supply.write(':OUTP CH3,OFF')  # start OFF - safe :)
         supply.write(':APPL CH3,0,0.2')  # apply 0V, 0.2A
+
+        #update the table
         self.update_table(data_headers, data_collected)
 
     def update_table(self, headers_in, data_in):

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>550</height>
    </rect>
   </property>
   <property name="font">
@@ -28,9 +28,9 @@ font: 10pt &quot;Tahoma&quot;</string>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>230</x>
      <y>20</y>
-     <width>481</width>
+     <width>551</width>
      <height>66</height>
     </rect>
    </property>
@@ -75,9 +75,9 @@ font: 10pt &quot;Tahoma&quot;</string>
    <property name="geometry">
     <rect>
      <x>529</x>
-     <y>19</y>
+     <y>109</y>
      <width>251</width>
-     <height>561</height>
+     <height>421</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -100,23 +100,26 @@ font: 10pt &quot;Tahoma&quot;</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>106</y>
-     <width>201</width>
-     <height>441</height>
+     <y>20</y>
+     <width>193</width>
+     <height>474</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QLabel" name="label_5">
       <property name="text">
-       <string>Final PSU voltage (Sweep - Ch. 1)</string>
+       <string>PSU voltage (Ch. 1)</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QDoubleSpinBox" name="volt_limit">
       <property name="decimals">
-       <number>3</number>
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <double>30.000000000000000</double>
       </property>
       <property name="value">
        <double>12.000000000000000</double>
@@ -126,14 +129,17 @@ font: 10pt &quot;Tahoma&quot;</string>
     <item>
      <widget class="QLabel" name="label_8">
       <property name="text">
-       <string>Target PSU voltage (Static - Ch. 2)</string>
+       <string>PSU voltage (Ch. 2)</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QDoubleSpinBox" name="volt_limit_2">
       <property name="decimals">
-       <number>3</number>
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <double>30.000000000000000</double>
       </property>
       <property name="value">
        <double>12.000000000000000</double>
@@ -143,24 +149,30 @@ font: 10pt &quot;Tahoma&quot;</string>
     <item>
      <widget class="QLabel" name="label_9">
       <property name="text">
-       <string>Target PSU voltage (Static - Ch. 3)</string>
+       <string>PSU voltage (Ch. 3)</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QDoubleSpinBox" name="volt_limit_3">
       <property name="decimals">
-       <number>3</number>
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <double>5.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.500000000000000</double>
       </property>
       <property name="value">
-       <double>12.000000000000000</double>
+       <double>5.000000000000000</double>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QLabel" name="label_6">
       <property name="text">
-       <string>Delay between measurements</string>
+       <string>Measurement length</string>
       </property>
      </widget>
     </item>
@@ -177,7 +189,7 @@ font: 10pt &quot;Tahoma&quot;</string>
     <item>
      <widget class="QLabel" name="label_7">
       <property name="text">
-       <string>Amount of data points (sweeps)</string>
+       <string>Amount of sweep data points</string>
       </property>
      </widget>
     </item>
@@ -195,11 +207,11 @@ font: 10pt &quot;Tahoma&quot;</string>
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="setting_group">
+     <widget class="QGroupBox" name="channel_group">
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>175</height>
+        <height>115</height>
        </size>
       </property>
       <property name="baseSize">
@@ -209,9 +221,9 @@ font: 10pt &quot;Tahoma&quot;</string>
        </size>
       </property>
       <property name="title">
-       <string>Mode</string>
+       <string>Sweep Channel</string>
       </property>
-      <widget class="QRadioButton" name="voltage_sweep_radio">
+      <widget class="QRadioButton" name="channel_2_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -221,36 +233,10 @@ font: 10pt &quot;Tahoma&quot;</string>
         </rect>
        </property>
        <property name="text">
-        <string>Voltage Sweep</string>
+        <string>Channel 2</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="nothing_radio">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>150</y>
-         <width>151</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Panel Test</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="current_sweep_radio">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>80</y>
-         <width>191</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Current Sweep</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="voltage_probe_radio">
+      <widget class="QRadioButton" name="channel_1_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -260,10 +246,10 @@ font: 10pt &quot;Tahoma&quot;</string>
         </rect>
        </property>
        <property name="text">
-        <string>Voltage Probe</string>
+        <string>Channel 1</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="current_probe_radio">
+      <widget class="QRadioButton" name="channel_3_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -273,35 +259,87 @@ font: 10pt &quot;Tahoma&quot;</string>
         </rect>
        </property>
        <property name="text">
-        <string>Current Probe</string>
+        <string>Channel 3</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="resistance_sweep_radio">
+      <widget class="QRadioButton" name="channel_0_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>120</y>
+         <y>80</y>
          <width>191</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Resistance Sweep</string>
+        <string>Don't sweep any channels</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="resistance_probe_radio">
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="setting_group">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>85</height>
+       </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>300</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Operation Mode</string>
+      </property>
+      <widget class="QRadioButton" name="voltage_radio">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>100</y>
+         <y>20</y>
          <width>191</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Resistance Probe</string>
+        <string>Voltage</string>
        </property>
       </widget>
+      <widget class="QRadioButton" name="current_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>40</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Current</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="resistance_radio">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>60</y>
+         <width>191</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Resistance</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="psuRecord">
+      <property name="text">
+       <string>Record PSU data</string>
+      </property>
      </widget>
     </item>
    </layout>
@@ -309,10 +347,10 @@ font: 10pt &quot;Tahoma&quot;</string>
   <widget class="QTextBrowser" name="console_out">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>230</x>
      <y>110</y>
-     <width>251</width>
-     <height>471</height>
+     <width>271</width>
+     <height>421</height>
     </rect>
    </property>
   </widget>
@@ -320,7 +358,7 @@ font: 10pt &quot;Tahoma&quot;</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>560</y>
+     <y>510</y>
      <width>91</width>
      <height>24</height>
     </rect>
@@ -337,8 +375,8 @@ background-color: rgb(255, 240, 240);</string>
   <widget class="QPushButton" name="copy_button">
    <property name="geometry">
     <rect>
-     <x>130</x>
-     <y>560</y>
+     <x>120</x>
+     <y>510</y>
      <width>91</width>
      <height>24</height>
     </rect>
